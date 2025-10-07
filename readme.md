@@ -51,13 +51,17 @@ pip install -r requirements.txt
 ### Requirements
 
 ```
-torch>=1.9.0
-pandas>=1.3.0
-numpy>=1.21.0
-scikit-learn>=0.24.0
-dice-ml>=0.9
-z3-solver>=4.8.12
-matplotlib>=3.4.0
+ipython==8.12.3
+jsonschema==3.2.0
+numpy==1.19.2
+pandas==1.3.5
+raiutils==0.4.1
+scikit_learn==0.23.2
+tensorflow==2.13.0
+torch==2.0.1
+tqdm==4.50.2
+z3_solver==4.13.0.0
+
 ```
 
 ## Repository Structure
@@ -281,7 +285,7 @@ Results are saved in `data/{exp_name}/`:
 - Unary constraint violations
 - Tuple conflicts (binary constraints)
 
-## Algorithm Variants
+## Projection Algorithm Variants 
 
 ### 1. Single Solver (Preprocessing)
 
@@ -295,13 +299,15 @@ Results are saved in `data/{exp_name}/`:
 - **Advantages:** No preprocessing required, filters constraint space
 - **Set:** Use same code, filtering happens automatically based on fixed features
 
-### 3. Linear Integrated
+## Counterfactuals Algorithm Variants 
+
+### 1. Linear Integrated
 
 - **Use when:** Using linear classifiers (SVM)
 - **Advantages:** Superior quality, joint optimization
 - **Set:** Add `--linear_model` flag
 
-### 4. Perturb-and-Project (P&P)
+### 2. Perturb-and-Project (P&P)
 
 - **Use when:** Using neural networks
 - **Advantages:** Works with any black-box mode(here just for neural).
