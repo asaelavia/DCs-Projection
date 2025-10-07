@@ -40,11 +40,22 @@ As a use case of tuple projection, we demonstrate how to generate **constraint-a
 ## Installation
 
 ```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 1. Ensure Python 3.8+ is installed
+python --version  # or python3 --version
 
-# Install dependencies
+# 2. Create virtual environment
+python -m venv venv
+
+# 3. Activate environment
+# Linux/Mac:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
+# 4. Upgrade pip (important!)
+pip install --upgrade pip
+
+# 5. Install dependencies
 pip install -r requirements.txt
 ```
 
