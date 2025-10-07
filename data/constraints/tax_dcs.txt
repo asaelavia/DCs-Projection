@@ -1,0 +1,8 @@
+¬{ t0.Statestr == t1.Statestr ∧ t0.HasChildstr == t1.HasChildstr ∧ t0.ChildExempint != t1.ChildExempint }
+¬{ t0.Statestr == t1.Statestr ∧ t0.SingleExempint >= t1.SingleExempint ∧ t0.MarriedExempint > t1.MarriedExempint }
+¬{ t0.Statestr == t1.Statestr ∧ t0.SingleExempint > t1.SingleExempint ∧ t0.MarriedExempint >= t1.MarriedExempint }
+¬{ t0.Statestr == t1.Statestr ∧ t0.SingleExempint != t1.SingleExempint ∧ t0.MarriedExempint == t1.MarriedExempint }
+¬{ t0.Statestr == t1.Statestr ∧ t0.SingleExempint == t1.SingleExempint ∧ t0.MarriedExempint != t1.MarriedExempint }
+¬{ t0.Statestr == t1.Statestr ∧ t0.MaritalStatusstr == t1.MaritalStatusstr ∧ t0.MarriedExempint != t1.MarriedExempint }
+¬{ t0.AreaCodestr == t1.AreaCodestr ∧ t0.Statestr != t1.Statestr }
+¬{ t0.Statestr == t1.Statestr ∧ t0.MaritalStatusstr == t1.MaritalStatusstr ∧ t0.SingleExempint != t1.SingleExempint }
