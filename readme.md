@@ -1,21 +1,40 @@
-# Constraint-Aware Counterfactual Explanations
+# Tuple Projection Over Denial Constraints
 
-This repository contains the implementation for generating constraint-aware counterfactual explanations using denial constraints and SMT solvers, as described in our paper.
+This repository contains the implementation for tuple projection over denial constraints using SMT solvers, as described in our paper. The repository includes both the core projection algorithms and an application to counterfactual explanation generation.
 
 ## Overview
 
-This codebase provides methods for:
+### Core Method: Tuple Projection
 
-- **Projection**: Projecting infeasible instances onto the constraint-satisfying manifold
-- **Counterfactual Generation**: Creating feasible, diverse counterfactual explanations for machine learning models
-- **Constraint Handling**: Supporting both unary and binary denial constraints
+The fundamental technique in this repository is **tuple projection** - projecting infeasible database tuples onto the constraint-satisfying manifold defined by denial constraints. Given a tuple that violates one or more denial constraints, projection finds the nearest valid tuple that satisfies all constraints.
+
+**Key aspects:**
+- Projects infeasible instances onto constraint-satisfying manifold
+- Handles both unary and binary denial constraints
+- Supports multiple projection algorithms (solver-based, exhaustive, best-in-dataset)
+
+### Application: Counterfactual Explanations
+
+As a use case of tuple projection, we demonstrate how to generate **constraint-aware counterfactual explanations** for machine learning models. This application uses projection to ensure that generated counterfactuals satisfy domain constraints.
+
+**Two approaches:**
+- **Perturb-and-Project (P&P)**: Generate counterfactuals with existing methods, then project them
+- **Linear Integrated**: Directly encode both classifier and constraints into the solver
+
+**Relationship to Projection:** Counterfactual generation uses projection as a subroutine. The P&P approach explicitly projects generated counterfactuals, while the linear integrated approach implicitly performs projection by encoding constraints directly in the solver.
 
 ## Key Features
 
-- **Solver-Based Projection**: Two variants (Single Solver with preprocessing, Suspect Set without preprocessing)
-- **Linear Model Integration**: Direct encoding of linear decision boundaries into the solver
-- **Neural Network Support**: Perturb-and-project approach for neural networks
-- **Multiple Baselines**: Exhaustive search, best-in-dataset selection
+### Projection Methods
+- **Single Solver (Preprocessing)**: Fastest per-instance runtime after preprocessing
+- **Suspect Set (No Preprocessing)**: Zero upfront cost, filters constraint space on-the-fly
+- **Exhaustive Search**: Baseline for small datasets
+- **Best-in-Dataset**: Selects closest valid tuple from dataset
+
+### Counterfactual Generation
+- **Perturb-and-Project**: Works with any black-box model (neural networks)
+- **Linear Integrated**: Superior quality for linear classifiers (SVM)
+- **Diversity Optimization**: Generates diverse sets of counterfactuals
 - **Comprehensive Metrics**: Proximity (MAD, L0, L1), diversity (DPP, pairwise, minimum), constraint violations
 
 ## Installation
@@ -74,7 +93,7 @@ python projection_test.py \
     --fixed_feat age race sex \
     --dataset_path data/datasets/adult.csv \
     --constraints_path data/constraints/adult_dcs.txt \
-    --k_lower 5 --k_upper 6 \
+    --k_lower 1 --k_upper 2 \
     --num_samples 10 \
     --exp_name adult_projection_test \
     --projection_mode solver
@@ -93,11 +112,10 @@ python perturb_test.py \
     --k_lower 5 --k_upper 6 \
     --num_samples 10 \
     --exp_name adult_neural_cfs \
-    --delta 50 \
     --solver_timeout 10000
 ```
 
-### 3. Linear Model Integrated Approach
+### 3. Linear Model Integrated Counterfactuals Approach
 
 For linear models with integrated constraint handling:
 
@@ -110,8 +128,7 @@ python perturb_test.py \
     --k_lower 5 --k_upper 6 \
     --linear_model \
     --exp_name adult_linear_integrated \
-    --delta 50 \
-    --solver_timeout 20000
+    --solver_timeout 50000
 ```
 
 ## Parameter Reference
@@ -124,8 +141,8 @@ python perturb_test.py \
 | `--fixed_feat` | list | Immutable features (e.g., age, race, sex) | `age race sex` |
 | `--dataset_path` | str | Path to CSV dataset | `data/datasets/adult.csv` |
 | `--constraints_path` | str | Path to denial constraints file | `data/constraints/adult_dcs.txt` |
-| `--k_lower` | int | Minimum number of CFs to generate | `5` |
-| `--k_upper` | int | Maximum number of CFs to generate | `6` |
+| `--k_lower` | int | Minimum number of CFs to generate (included) | `5` |
+| `--k_upper` | int | Maximum number of CFs to generate (not included) | `6` |
 | `--num_samples` | int | Number of test instances | `10` |
 | `--exp_name` | str | Experiment name for output directory | `adult_experiment` |
 
@@ -134,9 +151,10 @@ python perturb_test.py \
 | Parameter | Type | Description | Default |
 |-----------|------|-------------|---------|
 | `--epochs` | int | Training epochs for neural network | `10` |
-| `--load_model` | flag | Load pre-trained model | `False` |
+| `--load_model` | flag | Load pre-trained neural model | `False` |
 | `--linear_model` | flag | Use linear SVM classifier | `False` |
 | `--linear_pandp` | flag | Use perturb-and-project with linear model | `False` |
+| `--load_linear_model` | flag | Load pre-trained linear model | `False` |
 
 ### Solver Parameters
 
@@ -179,9 +197,8 @@ Constraints use the format: `¬{condition1 ∧ condition2 ∧ ...}`
 Example (`adult_dcs.txt`):
 
 ```
-t0.relationship == "Wife" && t0.sex != "Female"
-t0.age < 18 && t0.hours_per_week > 40
-t0.education_num >= t1.education_num && t0.income < t1.income
+¬{ t0.relationship == "Wife" ∧ t0.sex != "Female"}
+¬{ t0.education == t1.education ∧ t0.education_num != t1.education_num }
 ```
 
 - `t0.` refers to the counterfactual instance
@@ -196,39 +213,43 @@ See the `scripts/` directory for complete example scripts for each dataset:
 
 ```bash
 # Neural network with solver projection
-bash scripts/adult_neural_solver.sh
+bash scripts/adult_projection_solver.sh
 
-# Linear model integrated approach  
-bash scripts/adult_linear_integrated.sh
+# Neural network Perturb and Project
+bash scripts/adult_neural_solver_CFs.sh
 
-# Projection-only experiments
-bash scripts/adult_projection_only.sh
+# Neural network Perturb and Project solver per sample
+bash scripts/adult_neural_solver_per_sample_CFs.sh
 ```
 
-### NY-Housing Dataset
+### NY-Housing Dataset(Small Dataset)
 
 ```bash
-# Neural network experiments
-bash scripts/ny_neural_solver.sh
+# Domain exhaustive search projection
+bash scripts/ny_projection_exhaustive.sh
 
-# Linear model experiments
-bash scripts/ny_linear_integrated.sh
+# Linear model counterfactuals with model integrated
+bash scripts/ny_linear_model_CFs.sh
 ```
 
-### Census-Income Dataset
+### Census-Income Dataset(Large Dataset)
 
 ```bash
 # Large-scale experiments (7M+ assertions)
-bash scripts/census_neural_solver.sh
-bash scripts/census_linear_integrated.sh
+# Linear model counterfactuals with model integrated
+bash scripts/census_linear_CFs.sh
+# Linear model counterfactuals with model integrated, solver per sample
+bash scripts/census_linear_CFs_solver_per_sample.sh
 ```
 
 ### Tax Dataset
 
 ```bash
 # Synthetic dataset experiments
-bash scripts/tax_neural_solver.sh
-bash scripts/tax_linear_integrated.sh
+# Linear model counterfactuals with model integrated
+bash scripts/tax_linear_CFs.sh
+# Linear model counterfactuals perturb and project
+bash scripts/tax_linear_perturb_and_project_CFs.sh
 ```
 
 ## Output
@@ -239,20 +260,9 @@ Results are saved in `data/{exp_name}/`:
 - `solver_pandp_cfs_sample{i}_k{k}.csv` - Projected counterfactuals
 - `solver_linear_cfs_sample{i}_k{k}.csv` - Linear integrated CFs
 - `commandline_args.txt` - Command-line arguments used
-- `ml_model_state_dict.pth` - Trained model weights
+- `ml_model_state_dict.pth` - Trained neural model weights
+- `linear_model.pkl` - Trained SVM model
 
-## Evaluation
-
-Run evaluation to compute metrics:
-
-```bash
-python evaluate.py \
-    --dataset_path data/datasets/adult.csv \
-    --constraints_path data/constraints/adult_dcs.txt \
-    --dataset adult_experiment \
-    --k_lower 5 --k_upper 6 \
-    --mode solver
-```
 
 ### Metrics Computed
 
@@ -287,40 +297,16 @@ python evaluate.py \
 
 ### 3. Linear Integrated
 
-- **Use when:** Using linear classifiers (SVM, LogisticRegression)
+- **Use when:** Using linear classifiers (SVM)
 - **Advantages:** Superior quality, joint optimization
 - **Set:** Add `--linear_model` flag
 
 ### 4. Perturb-and-Project (P&P)
 
 - **Use when:** Using neural networks
-- **Advantages:** Works with any black-box model
+- **Advantages:** Works with any black-box mode(here just for neural).
 - **Set:** Default for neural networks (omit `--linear_model`)
 
-## Reproducing Paper Results
-
-To reproduce the experimental results from the paper:
-
-### Projection Experiments (Figure 4, Figure 5)
-
-```bash
-# Run all projection experiments
-bash scripts/run_all_projection.sh
-```
-
-### Neural Network CFs (Figure 6, Table 5, Table 6)
-
-```bash
-# Run all neural network CF experiments  
-bash scripts/run_all_neural_cfs.sh
-```
-
-### Linear Model CFs (Figure 7, Table 7, Table 8)
-
-```bash
-# Run all linear model CF experiments
-bash scripts/run_all_linear_cfs.sh
-```
 
 ## Troubleshooting
 
@@ -330,7 +316,7 @@ For large datasets (Census), reduce batch size or use Suspect Set variant:
 
 ```bash
 # Already uses Suspect Set automatically
-python perturb_test.py --dataset_path data/datasets/census.csv ...
+python perturb_test.py --fixed_flag --dataset_path data/datasets/census.csv ...
 ```
 
 ### Solver Timeouts
@@ -341,31 +327,25 @@ Increase solver timeout for complex constraint spaces:
 python perturb_test.py --solver_timeout 50000 ...  # 50 seconds
 ```
 
-### Slow Projection
 
-Enable solver cache reset to free memory:
+## Citation (TODO)
 
-```bash
-python perturb_test.py --fixed_flag ...
-```
-
-## Citation
-
-If you use this code, please cite our paper:
+<!-- If you use this code, please cite our paper:
 
 ```bibtex
-@inproceedings{yourpaper2024,
-  title={Constraint-Aware Counterfactual Explanations with Denial Constraints},
+
+@inproceedings{yourpaper2026,
+  title={# Tuple Projection Over Denial Constraints},
   author={Your Name and Coauthors},
   booktitle={Conference Name},
-  year={2024}
+  year={2026}
 }
-```
+``` -->
 
-## License
+## License (TODO)
 
-[Your License Here]
+<!-- [Your License Here] -->
 
 ## Contact
 
-For questions or issues, please open a GitHub issue or contact [your-email@domain.com].
+For questions or issues, please open a GitHub issue or contact [asaelavia@gmail.com].

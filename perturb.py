@@ -34,14 +34,10 @@ def parse_arguments():
     parser.add_argument('--k_lower', type=int, default=3, help='Lower range of number of counterfactuals to generate')
     parser.add_argument('--k_upper', type=int, default=4, help='Upper range of number of counterfactuals to generate')
     parser.add_argument('--epochs', type=int, default=10, help='Epochs to train model')
-    parser.add_argument('--model_state_dict_path', type=str, default='model_state_dict_adult_test.pth', help='Path to model state dict')
-    parser.add_argument('--thresh_lower', type=int, default=0, help='Lower range for threshold')
-    parser.add_argument('--thresh_upper', type=int, default=0, help='Upper range for threshold')
-    parser.add_argument('--dataset', type=str, default='adult_test', help='Name of the dataset')
     parser.add_argument('--exp_name', type=str, default='adult_test', help='Name of the dataset')
     parser.add_argument('--mode', type=str, default='hard', help='Soft or Hard projection')
     parser.add_argument('--gamma', type=float, default=0.01, help='Max percent of data to viloate')
-    parser.add_argument('--delta', type=float, default=0.5, help='Proximity weight parameter')
+    parser.add_argument('--delta', type=float, default=50, help='Proximity weight parameter')
     parser.add_argument('--timeout', type=int, default=1000, help='Timeout for projection function in seconds')
     parser.add_argument('--solver_timeout', type=int, default=10000, help='Timeout for projection function in seconds')
     parser.add_argument('--load_model', action='store_true',default=False,help='Whether to load a pre-trained model')
@@ -49,7 +45,7 @@ def parse_arguments():
     parser.add_argument('--linear_model', action='store_true',default=False,help='Whether to use a binary linear model')
     parser.add_argument('--linear_pandp', action='store_true',default=False,help='Whether to use perturb and project with binary linear model')
     parser.add_argument('--load_transformer', action='store_true',help='Whether to load a pre-trained transformer')
-    parser.add_argument('--preload', action='store_true',help='Whether to load a pre-trained linear model')
+    parser.add_argument('--load_linear_model', action='store_true',help='Whether to load a pre-trained linear model')
     parser.add_argument('--fixed_flag', action='store_true',help='Whether to load a pre-trained linear model')
     parser.add_argument('--projection_mode', type=str, default='solver', 
                         choices=['solver', 'exhaustive', 'best_in_dataset'],
@@ -1948,15 +1944,13 @@ def bfs_counterfactuals(dice_cfs,projection_config,threshold, **proj_kwargs):
                                                         desired_class=1,
                                                         verbose=True,
                                                         features_to_vary=features_to_vary,
-                                                        # proximity_weight=args.delta,
-                                                        # diversity_weight=5.0
                                                         )       
                     dice_cfs_orig = [convert_codes_to_categories_df(dice_exp_random.cf_examples_list[i].final_cfs_df_sparse ,category_mappings) for i in range(len(dice_exp_random.cf_examples_list))]
                 else:
                     dice_exp_random = exp_random.generate_counterfactuals(not_accepted, total_CFs=threshold, desired_class=1,
                                                                 verbose=True,
                                                                 features_to_vary=features_to_vary, max_iter=500,
-                                                                learning_rate=6e-1, proximity_weight=args.delta)
+                                                                learning_rate=6e-1, proximity_weight=args.delta/100)
                     dice_cfs_orig = [dice_exp_random.cf_examples_list[i].final_cfs_df_sparse for i in range(len(dice_exp_random.cf_examples_list))]
             
             except:

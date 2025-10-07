@@ -90,8 +90,8 @@ if __name__ == '__main__':
     print('Features to vary:', features_to_vary)
     exp_random.generate_counterfactuals(x_test[0:1], total_CFs=2, desired_class=1,
                                                                             verbose=False,
-                                                                            features_to_vary=features_to_vary, min_iter=200,max_iter=300,
-                                                                            learning_rate=6e-1, proximity_weight=args.delta)
+                                                                            features_to_vary=features_to_vary, min_iter=500,max_iter=600,
+                                                                            learning_rate=6e-1, proximity_weight=args.delta/100)
 
     
     # bfs_runtimes = {'fast': {},'solver': {}, 'corr': {},'dom': {}, 'long': {}}
@@ -108,9 +108,9 @@ if __name__ == '__main__':
         'unary_cons_lst_single': unary_cons_lst_single,
         'bin_cons': bin_cons,
     }
-    project_runtimes = {solver: [] for solver in ['fast', 'solver', 'solver_linear','best_in_dataset']}
-    projection_metrics = {solver: [] for solver in ['fast', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset']}
-    perturb_metrics = {solver: [] for solver in ['fast', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset']}
+    project_runtimes = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','best_in_dataset']}
+    projection_metrics = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset']}
+    perturb_metrics = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset']}
     projection_config = ProjectionConfig(
         args=args,
         df=df,
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             dice_exp_random = exp_random.generate_counterfactuals(query_instances, total_CFs=k, desired_class=1,
                                                                 verbose=True,
                                                                 features_to_vary=features_to_vary, max_iter=1000,
-                                                                learning_rate=6e-1, proximity_weight=args.delta)
+                                                                learning_rate=6e-1, proximity_weight=args.delta/100)
             et = time.time()
             dice_cfs_orig = dice_exp_random.cf_examples_list[0].final_cfs_df_sparse
             dice_dpp, dice_distance , l0_distance, l1_distance, pwise_div, min_dist_div = n_cfs_score(dice_cfs_orig.drop('label',axis=1, errors='ignore'), query_instances.iloc[0], projection_config)
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                     reset_solver_cache()
 
         # for mode in ['fast', 'dom']:
-        for mode in ['solver','fast', 'best_in_dataset']:
+        for mode in ['solver','exhaustive', 'best_in_dataset']:
             if project_runtimes[mode]:
                 if mode == 'solver':
                     max_index = project_runtimes[mode].index(max(project_runtimes[mode]))

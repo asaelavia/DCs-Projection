@@ -72,7 +72,7 @@ if __name__ == '__main__':
     
     if args.linear_model or args.linear_pandp:
 
-        model_lin = train_model(dataset, dataset, y_train, y_train, f'data/{args.exp_name}/linear_model.pkl', preload=args.preload)
+        model_lin = train_model(dataset, dataset, y_train, y_train, f'data/{args.exp_name}/linear_model.pkl', preload=args.load_linear_model)
         coefs, intercept = model_lin.coef_[0], model_lin.intercept_[0]
         coefs_dic = {col: val for col, val in zip(x_train.columns, coefs)}
 
@@ -142,14 +142,12 @@ if __name__ == '__main__':
                                                 desired_class=1,
                                                 verbose=False,
                                                 features_to_vary=features_to_vary,
-                                                # proximity_weight=args.delta
-                                                # diversity_weight=5.0  # Add this - genetic benefits from diversity tuning
                                                 )       
 
     exp_random.generate_counterfactuals(x_test[0:1], total_CFs=2, desired_class=1,
                                                                         verbose=False,
-                                                                        features_to_vary=features_to_vary, min_iter=200,max_iter=300,
-                                                                        learning_rate=6e-1, proximity_weight=args.delta)
+                                                                        features_to_vary=features_to_vary, min_iter=500,max_iter=600,
+                                                                        learning_rate=6e-1, proximity_weight=args.delta/100)
     
     bfs_runtimes = {'solver': {}}
     solver_kwargs = {
@@ -164,10 +162,10 @@ if __name__ == '__main__':
         'unary_cons_lst_single': unary_cons_lst_single,
         'bin_cons': bin_cons,
     }
-    project_runtimes = {solver: [] for solver in ['fast', 'solver', 'solver_linear','best_in_dataset','solver_pandp']}
-    projection_metrics = {solver: [] for solver in ['fast', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
-    perturb_metrics = {solver: [] for solver in ['fast', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
-    perturb_runtimes = {solver: {} for solver in ['fast', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
+    project_runtimes = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','best_in_dataset','solver_pandp']}
+    projection_metrics = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
+    perturb_metrics = {solver: [] for solver in ['exhaustive', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
+    perturb_runtimes = {solver: {} for solver in ['exhaustive', 'solver', 'solver_linear','dice_linear','dice','best_in_dataset','solver_pandp']}
     projection_config = ProjectionConfig(
         args=args,
         df=df,
@@ -221,7 +219,7 @@ if __name__ == '__main__':
                 dice_exp_random = exp_random.generate_counterfactuals(query_instances, total_CFs=k, desired_class=1,
                                                                 verbose=True,
                                                                 features_to_vary=features_to_vary, max_iter=500,
-                                                                learning_rate=6e-1, proximity_weight=args.delta)
+                                                                learning_rate=6e-1, proximity_weight=args.delta/100)
                 dice_cfs_orig = dice_exp_random.cf_examples_list[0].final_cfs_df_sparse
             dice_cfs_orig.to_csv(f'data/{args.exp_name}/dice_cfs_sample{i}_k{k}.csv', index=False)
             et = time.time()
