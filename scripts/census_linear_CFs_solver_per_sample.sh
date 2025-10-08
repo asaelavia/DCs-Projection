@@ -1,6 +1,6 @@
 #!/bin/bash
 # Census Dataset - Linear Model CFS With Integrated Model Solver Per Sample
-
+echo "Census linear model CFs solver per sample experiment starts!"
 python -u perturb_test.py \
     --cont_feat age wage_per_hour weeks_worked_in_year capital_gains capital_losses num_person_Worked_employer dividend_from_Stocks \
     --fixed_feat age hispanic_origin sex race marital_status country_self country_mother citizenship \

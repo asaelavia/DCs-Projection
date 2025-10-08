@@ -1,6 +1,6 @@
 #!/bin/bash
 # Tax Dataset - Linear Model CFS Perturb-and-Project
-
+echo "Tax linear model perturb and project experiment starts!"
 python -u perturb_test.py \
     --fixed_feat Genderstr \
     --cont_feat Salaryint SingleExempint MarriedExempint ChildExempint \

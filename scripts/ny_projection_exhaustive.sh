@@ -2,7 +2,7 @@
 # NY Dataset - Neural Network with Exhaustive Projection
 # This script generate 1 counterfactual using DiCE and projects it 
 # using on exhaustive search on whole domain of the data.
-
+echo "NY projection exhaustive experiment starts!"
 python -u projection_test.py \
     --cont_feat beds bath propertysqft \
     --fixed_feat type locality sublocality \

@@ -1,7 +1,7 @@
 #!/bin/bash
 # NY Dataset - Linear Model CFS with Integrated Model
 # This script generate 5 CFs using SMT Solver
-
+echo "NY linear model CFs experiment starts!"
 python -u perturb_test.py \
     --cont_feat beds bath propertysqft \
     --fixed_feat type locality sublocality \
