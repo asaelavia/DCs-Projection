@@ -43,6 +43,18 @@ As a use case of tuple projection, we demonstrate how to generate **constraint-a
 # 1. Ensure Python 3.8+ is installed
 python --version  # or python3 --version
 
+# =====================================================
+# Note:
+# This repository has been tested on:
+# - Python 3.8.5 with the dependency versions listed below
+# - Python 3.11 with:
+#     numpy==1.23.3
+#     scikit_learn==1.2.0
+# Versions above 3.8 are expected to work,
+# but full compatibility is not guaranteed
+# due to dependency differences.
+# =====================================================
+
 # 2. Create virtual environment
 python -m venv venv
 
